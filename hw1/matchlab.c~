@@ -1,0 +1,12 @@
+/*
+ * --CS 4400 Assingment 1--
+ *
+ * Author: Aaron Pabst
+ */
+
+#include<stdio.h>
+#include<stdlib.h>
+
+int main(int argc, char** argv){
+
+} 

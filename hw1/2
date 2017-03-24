@@ -1,0 +1,775 @@
+	.file	"matchlab.c"
+	.text
+	.globl	isDig
+	.type	isDig, @function
+isDig:
+.LFB2:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, %eax
+	movb	%al, -4(%rbp)
+	cmpb	$48, -4(%rbp)
+	je	.L2
+	cmpb	$49, -4(%rbp)
+	je	.L2
+	cmpb	$50, -4(%rbp)
+	je	.L2
+	cmpb	$51, -4(%rbp)
+	je	.L2
+	cmpb	$52, -4(%rbp)
+	je	.L2
+	cmpb	$53, -4(%rbp)
+	je	.L2
+	cmpb	$54, -4(%rbp)
+	je	.L2
+	cmpb	$55, -4(%rbp)
+	je	.L2
+	cmpb	$56, -4(%rbp)
+	je	.L2
+	cmpb	$57, -4(%rbp)
+	jne	.L3
+.L2:
+	movl	$1, %eax
+	jmp	.L4
+.L3:
+	movl	$0, %eax
+.L4:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE2:
+	.size	isDig, .-isDig
+	.section	.rodata
+.LC0:
+	.string	""
+	.text
+	.globl	aMode
+	.type	aMode, @function
+aMode:
+.LFB3:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$40, %rsp
+	movq	%rdi, -40(%rbp)
+	movq	-40(%rbp), %rax
+	movzbl	(%rax), %eax
+	movb	%al, -23(%rbp)
+	movl	$0, -20(%rbp)
+	movw	$1, -22(%rbp)
+	movl	$0, -16(%rbp)
+	movl	$0, -12(%rbp)
+	movq	$.LC0, -8(%rbp)
+	jmp	.L6
+.L20:
+	cmpl	$0, -12(%rbp)
+	jne	.L7
+	cmpb	$109, -23(%rbp)
+	jne	.L8
+	addl	$1, -16(%rbp)
+	jmp	.L13
+.L8:
+	movl	-16(%rbp), %eax
+	andl	$1, %eax
+	testl	%eax, %eax
+	je	.L10
+	cmpb	$118, -23(%rbp)
+	je	.L11
+.L10:
+	movw	$0, -22(%rbp)
+	jmp	.L12
+.L11:
+	movl	$1, -16(%rbp)
+	addl	$1, -12(%rbp)
+	jmp	.L13
+.L7:
+	cmpl	$1, -12(%rbp)
+	jne	.L14
+	cmpb	$118, -23(%rbp)
+	jne	.L15
+	addl	$1, -16(%rbp)
+	jmp	.L13
+.L15:
+	cmpl	$1, -16(%rbp)
+	jle	.L17
+	movsbl	-23(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	jne	.L18
+.L17:
+	movw	$0, -22(%rbp)
+	jmp	.L12
+.L18:
+	addl	$1, -12(%rbp)
+	movl	$1, -16(%rbp)
+	jmp	.L13
+.L14:
+	movsbl	-23(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	je	.L19
+	addl	$1, -16(%rbp)
+	jmp	.L13
+.L19:
+	movw	$0, -22(%rbp)
+	jmp	.L12
+.L13:
+	addl	$1, -20(%rbp)
+	movl	-20(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-40(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	movb	%al, -23(%rbp)
+.L6:
+	cmpb	$0, -23(%rbp)
+	jne	.L20
+.L12:
+	cmpl	$0, -16(%rbp)
+	jle	.L21
+	cmpl	$3, -16(%rbp)
+	jg	.L21
+	cmpw	$1, -22(%rbp)
+	jne	.L21
+	movq	-40(%rbp), %rax
+	jmp	.L22
+.L21:
+	movl	$.LC0, %eax
+.L22:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	aMode, .-aMode
+	.globl	isCap
+	.type	isCap, @function
+isCap:
+.LFB4:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	%edi, %eax
+	movb	%al, -4(%rbp)
+	cmpb	$64, -4(%rbp)
+	jle	.L24
+	cmpb	$90, -4(%rbp)
+	jg	.L24
+	movl	$1, %eax
+	jmp	.L25
+.L24:
+	movl	$0, %eax
+.L25:
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE4:
+	.size	isCap, .-isCap
+	.globl	bMode
+	.type	bMode, @function
+bMode:
+.LFB5:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$64, %rsp
+	movq	%rdi, -56(%rbp)
+	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
+	movb	%al, -40(%rbp)
+	movl	$0, -32(%rbp)
+	movw	$0, -38(%rbp)
+	movw	$1, -36(%rbp)
+	movl	$0, -28(%rbp)
+	movl	$8, %edi
+	call	malloc
+	movq	%rax, -16(%rbp)
+	movw	$1, -34(%rbp)
+	movl	$2, -24(%rbp)
+	jmp	.L27
+.L50:
+	cmpw	$0, -38(%rbp)
+	jne	.L28
+	cmpb	$103, -40(%rbp)
+	jne	.L29
+	addl	$1, -28(%rbp)
+	jmp	.L34
+.L29:
+	cmpl	$3, -28(%rbp)
+	jle	.L31
+	movsbl	-40(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	jne	.L32
+.L31:
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L32:
+	movzwl	-38(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -38(%rbp)
+	movq	-16(%rbp), %rax
+	movzbl	-40(%rbp), %edx
+	movb	%dl, (%rax)
+	movl	$1, -28(%rbp)
+	jmp	.L34
+.L28:
+	cmpw	$1, -38(%rbp)
+	jne	.L35
+	movsbl	-40(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	je	.L36
+	addl	$1, -28(%rbp)
+	movswq	-34(%rbp), %rdx
+	movq	-16(%rbp), %rax
+	addq	%rax, %rdx
+	movzbl	-40(%rbp), %eax
+	movb	%al, (%rdx)
+	movzwl	-34(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -34(%rbp)
+	cmpw	$5, -34(%rbp)
+	jle	.L34
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L36:
+	cmpl	$3, -28(%rbp)
+	jg	.L38
+	cmpb	$110, -40(%rbp)
+	je	.L39
+.L38:
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L39:
+	movzwl	-38(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -38(%rbp)
+	movl	$1, -28(%rbp)
+	jmp	.L34
+.L35:
+	cmpw	$2, -38(%rbp)
+	jne	.L40
+	cmpb	$110, -40(%rbp)
+	jne	.L41
+	addl	$1, -28(%rbp)
+	jmp	.L34
+.L41:
+	cmpl	$1, -28(%rbp)
+	jle	.L43
+	cmpl	$5, -28(%rbp)
+	jg	.L43
+	movq	-16(%rbp), %rax
+	movzbl	(%rax), %eax
+	cmpb	-40(%rbp), %al
+	je	.L44
+.L43:
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L44:
+	movl	$1, -28(%rbp)
+	movzwl	-38(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -38(%rbp)
+	jmp	.L34
+.L40:
+	cmpw	$3, -38(%rbp)
+	jne	.L45
+	movl	-24(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-16(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	cmpb	-40(%rbp), %al
+	jne	.L46
+	addl	$2, -24(%rbp)
+	jmp	.L34
+.L46:
+	movsbl	-40(%rbp), %eax
+	movl	%eax, %edi
+	call	isCap
+	testw	%ax, %ax
+	jne	.L48
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L48:
+	movzwl	-38(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -38(%rbp)
+	jmp	.L34
+.L45:
+	cmpw	$4, -38(%rbp)
+	jne	.L34
+	movsbl	-40(%rbp), %eax
+	movl	%eax, %edi
+	call	isCap
+	testw	%ax, %ax
+	je	.L49
+	addl	$1, -28(%rbp)
+	jmp	.L34
+.L49:
+	movw	$0, -36(%rbp)
+	jmp	.L33
+.L34:
+	addl	$1, -32(%rbp)
+	movl	-32(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-56(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	movb	%al, -40(%rbp)
+.L27:
+	cmpb	$0, -40(%rbp)
+	jne	.L50
+.L33:
+	cmpw	$1, -36(%rbp)
+	jne	.L51
+	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
+	movb	%al, -40(%rbp)
+	movl	$0, -32(%rbp)
+	movl	-32(%rbp), %eax
+	addl	$1, %eax
+	addl	%eax, %eax
+	cltq
+	movq	%rax, %rdi
+	call	malloc
+	movq	%rax, -8(%rbp)
+	movl	$0, -20(%rbp)
+	jmp	.L52
+.L53:
+	movl	-20(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-8(%rbp), %rax
+	addq	%rax, %rdx
+	movzbl	-40(%rbp), %eax
+	movb	%al, (%rdx)
+	movl	-32(%rbp), %eax
+	cltd
+	shrl	$29, %edx
+	addl	%edx, %eax
+	andl	$7, %eax
+	subl	%edx, %eax
+	addl	$48, %eax
+	movb	%al, -39(%rbp)
+	movl	-20(%rbp), %eax
+	cltq
+	leaq	1(%rax), %rdx
+	movq	-8(%rbp), %rax
+	addq	%rax, %rdx
+	movzbl	-39(%rbp), %eax
+	movb	%al, (%rdx)
+	addl	$2, -20(%rbp)
+	addl	$1, -32(%rbp)
+	movl	-32(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-56(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	movb	%al, -40(%rbp)
+.L52:
+	cmpb	$0, -40(%rbp)
+	jne	.L53
+	movq	-8(%rbp), %rax
+	jmp	.L54
+.L51:
+	movl	$.LC0, %eax
+.L54:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE5:
+	.size	bMode, .-bMode
+	.globl	cMode
+	.type	cMode, @function
+cMode:
+.LFB6:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$64, %rsp
+	movq	%rdi, -56(%rbp)
+	movl	$0, -32(%rbp)
+	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
+	movb	%al, -37(%rbp)
+	movl	$0, -28(%rbp)
+	movw	$0, -36(%rbp)
+	movw	$1, -34(%rbp)
+	movl	$64, %edi
+	call	malloc
+	movq	%rax, -16(%rbp)
+	movl	$1, -24(%rbp)
+	jmp	.L56
+.L80:
+	cmpw	$0, -36(%rbp)
+	jne	.L57
+	cmpb	$98, -37(%rbp)
+	jne	.L58
+	addl	$1, -32(%rbp)
+	jmp	.L63
+.L58:
+	movl	-32(%rbp), %eax
+	andl	$1, %eax
+	testl	%eax, %eax
+	je	.L60
+	movsbl	-37(%rbp), %eax
+	movl	%eax, %edi
+	call	isCap
+	testw	%ax, %ax
+	jne	.L61
+.L60:
+	movw	$0, -34(%rbp)
+	jmp	.L62
+.L61:
+	movzwl	-36(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -36(%rbp)
+	movq	-16(%rbp), %rax
+	movzbl	-37(%rbp), %edx
+	movb	%dl, (%rax)
+	movl	$1, -32(%rbp)
+	jmp	.L63
+.L57:
+	cmpw	$1, -36(%rbp)
+	jne	.L64
+	movsbl	-37(%rbp), %eax
+	movl	%eax, %edi
+	call	isCap
+	testw	%ax, %ax
+	je	.L65
+	addl	$1, -32(%rbp)
+	movl	-24(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-16(%rbp), %rax
+	addq	%rax, %rdx
+	movzbl	-37(%rbp), %eax
+	movb	%al, (%rdx)
+	addl	$1, -24(%rbp)
+	jmp	.L63
+.L65:
+	movl	-32(%rbp), %eax
+	andl	$1, %eax
+	testl	%eax, %eax
+	je	.L67
+	cmpb	$120, -37(%rbp)
+	je	.L68
+.L67:
+	movw	$0, -34(%rbp)
+	jmp	.L62
+.L68:
+	movzwl	-36(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -36(%rbp)
+	movl	$1, -32(%rbp)
+	jmp	.L63
+.L64:
+	cmpw	$2, -36(%rbp)
+	jne	.L69
+	cmpb	$120, -37(%rbp)
+	jne	.L70
+	addl	$1, -32(%rbp)
+	jmp	.L63
+.L70:
+	cmpl	$2, -32(%rbp)
+	jg	.L72
+	movl	-24(%rbp), %eax
+	cltq
+	leaq	-1(%rax), %rdx
+	movq	-16(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	cmpb	-37(%rbp), %al
+	je	.L73
+.L72:
+	movw	$0, -34(%rbp)
+	jmp	.L62
+.L73:
+	movzwl	-36(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -36(%rbp)
+	subl	$1, -24(%rbp)
+	movl	$1, -32(%rbp)
+	jmp	.L63
+.L69:
+	cmpw	$3, -36(%rbp)
+	jne	.L74
+	movl	-24(%rbp), %eax
+	cltq
+	leaq	-1(%rax), %rdx
+	movq	-16(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	cmpb	-37(%rbp), %al
+	jne	.L75
+	subl	$1, -24(%rbp)
+	jmp	.L63
+.L75:
+	cmpl	$0, -24(%rbp)
+	js	.L77
+	movsbl	-37(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	jne	.L78
+.L77:
+	movw	$0, -34(%rbp)
+	jmp	.L62
+.L78:
+	movzwl	-36(%rbp), %eax
+	addl	$1, %eax
+	movw	%ax, -36(%rbp)
+	jmp	.L63
+.L74:
+	cmpw	$4, -36(%rbp)
+	jne	.L63
+	movsbl	-37(%rbp), %eax
+	movl	%eax, %edi
+	call	isDig
+	testw	%ax, %ax
+	je	.L79
+	addl	$1, -32(%rbp)
+	jmp	.L63
+.L79:
+	movw	$0, -34(%rbp)
+.L63:
+	addl	$1, -28(%rbp)
+	movl	-28(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-56(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	movb	%al, -37(%rbp)
+.L56:
+	cmpb	$0, -37(%rbp)
+	jne	.L80
+.L62:
+	cmpl	$3, -32(%rbp)
+	jle	.L81
+	movw	$0, -34(%rbp)
+.L81:
+	cmpw	$1, -34(%rbp)
+	jne	.L82
+	movq	-56(%rbp), %rax
+	movzbl	(%rax), %eax
+	movb	%al, -37(%rbp)
+	movl	$128, %edi
+	call	malloc
+	movq	%rax, -8(%rbp)
+	movl	$0, -20(%rbp)
+	movl	$0, -28(%rbp)
+	jmp	.L83
+.L86:
+	cmpb	$71, -37(%rbp)
+	jne	.L84
+	movl	-20(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-8(%rbp), %rax
+	addq	%rdx, %rax
+	movb	$71, (%rax)
+	movl	-20(%rbp), %eax
+	cltq
+	leaq	1(%rax), %rdx
+	movq	-8(%rbp), %rax
+	addq	%rdx, %rax
+	movb	$71, (%rax)
+	movl	-20(%rbp), %eax
+	cltq
+	leaq	2(%rax), %rdx
+	movq	-8(%rbp), %rax
+	addq	%rdx, %rax
+	movb	$71, (%rax)
+	addl	$3, -20(%rbp)
+	jmp	.L85
+.L84:
+	movl	-20(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-8(%rbp), %rax
+	addq	%rax, %rdx
+	movzbl	-37(%rbp), %eax
+	movb	%al, (%rdx)
+	addl	$1, -20(%rbp)
+.L85:
+	addl	$1, -28(%rbp)
+	movl	-28(%rbp), %eax
+	movslq	%eax, %rdx
+	movq	-56(%rbp), %rax
+	addq	%rdx, %rax
+	movzbl	(%rax), %eax
+	movb	%al, -37(%rbp)
+.L83:
+	cmpb	$0, -37(%rbp)
+	jne	.L86
+	movq	-8(%rbp), %rax
+	jmp	.L87
+.L82:
+	movl	$.LC0, %eax
+.L87:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	cMode, .-cMode
+	.section	.rodata
+.LC1:
+	.string	"no"
+.LC2:
+	.string	"yes"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB7:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$48, %rsp
+	movl	%edi, -36(%rbp)
+	movq	%rsi, -48(%rbp)
+	movw	$0, -18(%rbp)
+	movq	-48(%rbp), %rax
+	addq	$8, %rax
+	movq	(%rax), %rax
+	movzbl	(%rax), %eax
+	cmpb	$45, %al
+	jne	.L89
+	movq	-48(%rbp), %rax
+	addq	$8, %rax
+	movq	(%rax), %rax
+	addq	$1, %rax
+	movzbl	(%rax), %eax
+	cmpb	$116, %al
+	jne	.L90
+	movw	$1, -18(%rbp)
+	movq	-48(%rbp), %rax
+	addq	$16, %rax
+	movq	(%rax), %rax
+	movzbl	1(%rax), %eax
+	movb	%al, -19(%rbp)
+	movl	$3, -16(%rbp)
+	jmp	.L93
+.L90:
+	movq	-48(%rbp), %rax
+	addq	$8, %rax
+	movq	(%rax), %rax
+	movzbl	1(%rax), %eax
+	movb	%al, -19(%rbp)
+	movq	-48(%rbp), %rax
+	addq	$16, %rax
+	movq	(%rax), %rax
+	addq	$1, %rax
+	movzbl	(%rax), %eax
+	cmpb	$116, %al
+	jne	.L92
+	movw	$1, -18(%rbp)
+	movl	$3, -16(%rbp)
+	jmp	.L93
+.L92:
+	movl	$2, -16(%rbp)
+	jmp	.L93
+.L89:
+	movb	$97, -19(%rbp)
+	movl	$1, -16(%rbp)
+.L93:
+	movl	-16(%rbp), %eax
+	movl	%eax, -12(%rbp)
+	jmp	.L94
+.L102:
+	cmpb	$97, -19(%rbp)
+	jne	.L95
+	movl	-12(%rbp), %eax
+	cltq
+	leaq	0(,%rax,8), %rdx
+	movq	-48(%rbp), %rax
+	addq	%rdx, %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdi
+	call	aMode
+	movq	%rax, -8(%rbp)
+	jmp	.L96
+.L95:
+	cmpb	$98, -19(%rbp)
+	jne	.L97
+	movl	-12(%rbp), %eax
+	cltq
+	leaq	0(,%rax,8), %rdx
+	movq	-48(%rbp), %rax
+	addq	%rdx, %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdi
+	call	bMode
+	movq	%rax, -8(%rbp)
+	jmp	.L96
+.L97:
+	cmpb	$99, -19(%rbp)
+	jne	.L96
+	movl	-12(%rbp), %eax
+	cltq
+	leaq	0(,%rax,8), %rdx
+	movq	-48(%rbp), %rax
+	addq	%rdx, %rax
+	movq	(%rax), %rax
+	movq	%rax, %rdi
+	call	cMode
+	movq	%rax, -8(%rbp)
+.L96:
+	movq	-8(%rbp), %rax
+	movzbl	(%rax), %eax
+	testb	%al, %al
+	jne	.L98
+	cmpw	$0, -18(%rbp)
+	jne	.L100
+	movl	$.LC1, %edi
+	call	puts
+	jmp	.L100
+.L98:
+	cmpw	$0, -18(%rbp)
+	jne	.L101
+	movl	$.LC2, %edi
+	call	puts
+	jmp	.L100
+.L101:
+	movq	-8(%rbp), %rax
+	movq	%rax, %rdi
+	call	puts
+.L100:
+	addl	$1, -12(%rbp)
+.L94:
+	movl	-12(%rbp), %eax
+	cmpl	-36(%rbp), %eax
+	jl	.L102
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE7:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2"
+	.section	.note.GNU-stack,"",@progbits
