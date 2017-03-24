@@ -30,19 +30,21 @@ int main(int argc, char **argv) {
 }
 
 static void run_script(script *scr) {
+  printf("Num groups: %d", scr->num_groups);
   if (scr->num_groups == 1) {
     run_group(&scr->groups[0]);
   } else {
-    /* You'll have to make run_script do better than this */
-    fail("only 1 group supported");
+    for(int i = 0; i < scr->num_groups; i++)
+      run_group(&scr->groups[i]);
   }
 }
 
 static void run_group(script_group *group) {
+  
   /* You'll have to make run_group do better than this, too */
   if (group->repeats != 1)
     fail("only repeat 1 supported");
-  if (group->result_to != NULL)
+  if (group->result_to != NULL) 
     fail("setting variables not supported");
 
   if (group->num_commands == 1) {
@@ -50,6 +52,16 @@ static void run_group(script_group *group) {
   } else {
     /* And here */
     fail("only 1 command supported");
+  }
+
+  if(group->mode == GROUP_SINGLE){
+    for(int j = 0; j < group->repeats; j++) // Fire off a set for each repeat of the grp
+      for(int i = 0; i < group->num_commands; i++){
+	//Fire off a new process for each commmand
+      }
+  }
+  else{
+    fail("group_and and group_or not supported");
   }
 }
 

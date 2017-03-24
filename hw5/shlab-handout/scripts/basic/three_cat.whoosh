@@ -1,0 +1,6 @@
+# Run run many pipelines to make sure pipes are closed correctly
+
+$result = cat whoosh.c
+/bin/echo $result
+
+# Expected output:
