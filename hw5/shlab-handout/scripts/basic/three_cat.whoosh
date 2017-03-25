@@ -1,6 +1,7 @@
 # Run run many pipelines to make sure pipes are closed correctly
 
-$result = cat whoosh.c
-/bin/echo $result
+#/bin/cat whoosh.c | /bin/cat | /bin/cat
+
+./writer | ./reader | ./reader
 
 # Expected output:
