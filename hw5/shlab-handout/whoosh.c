@@ -12,6 +12,7 @@ static void run_group(script_group *group);
 static void run_command(script_command *command);
 static void set_var(script_var *var, int new_value);
 
+
 /* You probably shouldn't change main at all. */
 
 int main(int argc, char **argv) {
@@ -47,84 +48,121 @@ static void run_group(script_group *group) {
   if (group->result_to != NULL) 
     fail("setting variables not supported");
 
-  /* if (group->num_commands == 1) { */
-  /*   run_command(&group->commands[0]); */
+  if (group->num_commands == 1) {
+    run_command(&group->commands[0]);
+  } 
   /* } else { */
   /*   /\* And here *\/ */
   /*   fail("only 1 command supported"); */
   /* } */
 
-  int** fd;
-  fd = (int**)malloc((group->repeats * group->num_commands)*sizeof(int*));
-  for(int i = 0; i < group->repeats * group->num_commands; i++){
-    fd[i] = malloc(2*sizeof(int));
-  } 
+  /* int** fd; */
+  /* fd = (int**)malloc((group->repeats * group->num_commands)*sizeof(int*)); */
+  /* for(int i = 0; i < group->repeats * group->num_commands; i++){ */
+  /*   fd[i] = malloc(2*sizeof(int)); */
+  /* }  */
+  int i, j;
+
+  int fda[2], fdb[2];
+  int inOut = 0; // 0 if pipe input, 1 otherwise 
   
-  if(group->mode == GROUP_AND){
-    for(int j = 0; j < group->repeats; j++) // Fire off a set for each repeat of the grp
-      for(int i = 0; i < group->num_commands; i++){
+  if(group->mode == GROUP_AND || group->mode == GROUP_OR || group->mode == GROUP_SINGLE){
+    for(j = 0; j < group->repeats; j++){ // Fire off a set for each repeat of the grp
+      inOut = 0;
+      for(i = 0; i < group->num_commands; i++){
 	//Fire off a new process for each commmand
-	if(j == 0 && i == 0){
+	if(i == 0){
 	  // First process
-	  pipe(fd[0]);
-
+	  pipe(fda);
+	  
 	  if(fork() == 0){
-	    printf("Redirecting stdout to %d\n", fd[0][1]);
-	    dup2(fd[0][1], 1);
-	    
-	    //close(fd[0][0]);
-	    //close(fd[0][1]);
+	    //printf("Pre-dup2\n");
+	    dup2(fda[1], 1);
+	    printf("Initial: Redirecting stdin to %d \n", fda[1]);
+	    close(fda[0]);
+	    close(fda[1]);
+	    close(fdb[0]);
+	    close(fdb[1]);
 	    run_command(&group->commands[0]);
-
-	    
 	  }
 	}
 	else if(i == group->num_commands-1){
 	  // Last Proc
 	  if(fork() == 0){
-	    printf("Last: Redirecting stdin to %d\n", fd[j+i-1][0]);
-	    dup2(fd[j+i-1][0], 0);
-
-	    close(fd[j+i-1][1]);
-	    //close(fd[j+i-1][0]);
+	    printf("last: inOut: %d\n", inOut);
+	    if(inOut)
+	      dup2(fdb[0], 0);
+	    else
+	      dup2(fda[0], 0);
+	    // printf("Last: Redirecting stdout to %d \n", fdb[0]);
+	    close(fdb[1]);
+	    close(fdb[0]);
+	    close(fda[1]);
+	    close(fda[0]);
+	    
 	    run_command(&group->commands[i]);
-
 	  }
 	}
 	else{
 	  // Intermidiate proc
-	  pipe(fd[j+i]);
+	  if(!inOut)
+	    pipe(fdb);
+	  else
+	    pipe(fda);
 
 	  if(fork() == 0){
-	    printf("Intermidiate: Redirecting stdin to %d\n", fd[j+i-1][0]);
-	    dup2(fd[j+i-1][0], 0); // Grab the tail end of the last pipe
-	    printf("Intermidiate: Redirecting stdout to %d\n", fd[j+i][1]);
-	    dup2(fd[j+i][1], 1); // Grab the head of the new pipe
-
-	    close(fd[j+i-1][1]);
-	    //close(fd[j+i][0]);
-	    //close(fd[j+i-1][0]);
-	    //close(fd[j+i][1]);
+	    printf("inter: inOut: %d\n", inOut);
+	    if(!inOut){ // Output end of pipe
+	      //printf("pre-dup2");
+	      dup2(fda[0], 0);
+	      dup2(fdb[1], 1);
+	      printf("Inter: Redirecting stdout to %d \n", fda[0]);
+	      printf("Inter: Redirecting stdin to %d \n", fdb[1]);
+	     
+	      close(fda[1]);
+	      close(fda[0]);
+	      close(fdb[1]);
+	      close(fdb[0]);
+	      //inOut = !inOut; 
+	    }
+	    else{ // input end of pipe
+	      dup2(fdb[0], 0);
+	      dup2(fda[1], 1);
+	      printf("Redirecting stdin to %d \n", fda[1]);
+	      printf("Redirecting stdout to %d \n", fdb[0]);
+	      close(fda[0]);
+	      close(fda[1]); 
+	      close(fdb[0]);
+	      close(fdb[1]);
+	      //inOut = !inOut;
+	    }
+	    
 	    run_command(&group->commands[i]);
 	  }
+	  
+	  inOut = !inOut;
 	}
       }
+
+      close(fda[0]);
+      close(fda[1]);
+
+      close(fdb[0]);
+      close(fdb[1]);
+  
+      int status;
+      for(i = 0; i < group->repeats * group->num_commands; i++){
+	//printf("waiting on %d\n", i);
+	wait(&status);
+      }
+     }
   }
   else{
     fail("group_and and group_or not supported");
   }
 
-  for(int i = 0; i < group->repeats * group->num_commands-1; i++){
-    //close(fd[i][0]);
-    printf("Closing %d\n", fd[i][1]);
-    close(fd[i][1]);
-  }
-
-  int status;
-  int i;
-  for(i = 0; i < group->repeats * group->num_commands; i++){
-    wait(&status);
-  }
+  
+  
 }
 
 /* This run_command function is a good start, but note that it runs

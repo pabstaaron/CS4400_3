@@ -2,6 +2,10 @@
 
 #/bin/cat whoosh.c | /bin/cat | /bin/cat
 
-./writer | ./reader | ./reader
+#./writer | ./reader | ./reader
+
+#/bin/echo x | /bin/cat| /bin/cat 
+
+/bin/echo x | /bin/cat| /bin/cat | /bin/cat
 
 # Expected output:
