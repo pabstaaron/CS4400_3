@@ -14,11 +14,11 @@ static void run_command(script_command *command);
 static void set_var(script_var *var, int new_value);
 static void set_var2(script_var *var, int fd);
 
-int ctrlC_Pending;
-// Called on when ctl-c is received from the shell
-void ctlC(int sigchld){
-  ctrlC_Pending = 1;
-}
+/* int ctrlC_Pending; */
+/* // Called on when ctl-c is received from the shell */
+/* void ctlC(int sigchld){ */
+/*   ctrlC_Pending = 1; */
+/* } */
 
 // Called when a child completes
 void chld_done(int sigchld){
@@ -80,14 +80,14 @@ static void run_group(script_group *group) {
     //printf("In group_and group_or block\n");
     for(j = 0; j < group->repeats; j++){ // Fire off a set for each repeat of the grp
       inOut = 0;
-      sigset_t sigs, empty_mask;
-      Sigemptyset(&sigs);
-      Sigemptyset(&empty_mask);
-      Signal(SIGINT, ctlC); // Set up the ctl-c handler
-      Signal(SIGCHLD, chld_done);
+      /* sigset_t sigs, empty_mask; */
+      /* Sigemptyset(&sigs); */
+      /* Sigemptyset(&empty_mask); */
+      /* Signal(SIGINT, ctlC); // Set up the ctl-c handler */
+      /* Signal(SIGCHLD, chld_done); */
 
-      Sigaddset(&sigs, SIGINT);
-      Sigprocmask(SIG_BLOCK, &sigs, NULL);
+      /* Sigaddset(&sigs, SIGINT); */
+      /* Sigprocmask(SIG_BLOCK, &sigs, NULL); */
       
       for(i = 0; i < group->num_commands; i++){
 	//Fire off a new process for each commmand
@@ -205,7 +205,7 @@ static void run_group(script_group *group) {
       close(fdb[1]);
 
       
-      Sigsuspend(&empty_mask);
+      /* Sigsuspend(&empty_mask) */;
       
       int status; 
       for(i = 0; i < group->num_commands; i++){
