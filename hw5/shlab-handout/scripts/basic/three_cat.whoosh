@@ -6,6 +6,13 @@
 
 #/bin/echo x | /bin/cat| /bin/cat 
 
-/bin/echo x | /bin/cat| /bin/cat | /bin/cat
+#$bash = /bin/bash -c "exit 42"
+#/bin/echo $bash
+
+#$result = /bin/echo x 
+#/bin/echo x
+
+$result = /bin/bash -c "exit 1" || /bin/bash -c "exit 2" 
+/bin/echo $result
 
 # Expected output:
