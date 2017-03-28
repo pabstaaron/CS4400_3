@@ -12,14 +12,14 @@
 #$result = /bin/echo x 
 #/bin/echo $result
 
-#/bin/sleep 1000
-#/bin/sleep 1000
-#/bin/sleep 1000
+repeat 3 /bin/sleep 1000 || /bin/sleep 1000 || /bin/sleep 1000
+#/bin/sleep 1000 | /bin/cat
+#/bin/sleep 1000 | /bin/cat
 
 #$result = /bin/bash -c "exit 1" || /bin/bash -c "exit 2" 
 #/bin/echo $result
 
-/bin/bash -c "kill 0" | /bin/cat
+#/bin/bash -c "kill 0" | /bin/cat
 #/bin/echo x
 
 

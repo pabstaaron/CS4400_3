@@ -15,13 +15,20 @@ static void set_var(script_var *var, int new_value);
 static void set_var2(script_var *var, int fd);
 
 int ctlC_Pending;
+int* pids;
+int pidsLength;
 // Called on when ctl-c is received from the shell
 void ctlC(int sigchld){
-  ctlC_Pending = 1;
+  //printf("Got ctl-c");
+  int i;
+  for(i = 0; i < pidsLength; i++)
+    kill(pids[i], SIGTERM);
+  //exit(0);
 }
 
 // Called when a child completes
 void chld_done(int sigchld){
+  //printf("Child done");
   int status;
   wait(&status);
 }
@@ -81,16 +88,17 @@ static void run_group(script_group *group) {
     //printf("In group_and group_or block\n");
     for(j = 0; j < group->repeats; j++){ // Fire off a set for each repeat of the grp
       inOut = 0;
-      /* sigset_t sigs, empty_mask; */
-      /* Sigemptyset(&sigs); */
-      /* Sigemptyset(&empty_mask); */
-      /* Signal(SIGINT, ctlC); // Set up the ctl-c handler */
-      /* Signal(SIGCHLD, chld_done); */
+      sigset_t sigs, empty_mask;
+      Sigemptyset(&sigs);
+      Sigemptyset(&empty_mask);
+      Signal(SIGINT, ctlC); // Set up the ctl-c handler
+      Signal(SIGCHLD, chld_done); 
 
-      /* Sigaddset(&sigs, SIGINT); */
-      /* Sigprocmask(SIG_BLOCK, &sigs, NULL); */
+      Sigaddset(&sigs, SIGINT);
+      Sigprocmask(SIG_BLOCK, &sigs, NULL);
 
-      int* pids = malloc(group->num_commands * sizeof(int));
+      pids = malloc(group->num_commands * sizeof(int));
+      pidsLength = group->num_commands;
       for(i = 0; i < group->num_commands; i++){
 	//Fire off a new process for each commmand
 	if(i == 0){
@@ -213,8 +221,8 @@ static void run_group(script_group *group) {
       close(fdb[1]);
 
       
-      /* Sigsuspend(&empty_mask); */
-
+      Sigsuspend(&empty_mask); 
+      //printf("after suspend");
       /* if(ctlC_Pending) // Kill children */
       /* 	for(i = 0; i < group->num_commands; i++) */
       /* 	  kill(pids[i], 15); */
@@ -236,8 +244,20 @@ static void run_group(script_group *group) {
     int i; 
     //printf("In group single block\n");
     for(i = 0; i < group->repeats; i++){
+      sigset_t sigs, empty_mask;
+      Sigemptyset(&sigs);
+      Sigemptyset(&empty_mask);
+      Signal(SIGINT, ctlC); // Set up the ctl-c handler
+      Signal(SIGCHLD, chld_done); 
+
+      Sigaddset(&sigs, SIGINT);
+      Sigprocmask(SIG_BLOCK, &sigs, NULL);
+      
       // Don't need to pipe for just one process.
       int pid = fork();
+      pids = malloc(group->num_commands * sizeof(int));
+      pidsLength = group->num_commands;
+      pids[0] = pid;
       setpgid(pid, 0);
       if(pid == 0){
 	//dup2(fd[1], 1);
@@ -250,7 +270,9 @@ static void run_group(script_group *group) {
       /*   set_var2(group->result_to, fd[0]); */
       /* } */
 
-
+      
+      Sigsuspend(&empty_mask);
+      
       //close(fd[0]);
       int status;
       wait(&status);
@@ -264,7 +286,18 @@ static void run_group(script_group *group) {
     
     for(j = 0; j < group->repeats; j++){ // Fire off a set for each repeat of the grp
       inOut = 0;
-      int* pids = malloc(group->num_commands * sizeof(int));
+
+      sigset_t sigs, empty_mask;
+      Sigemptyset(&sigs);
+      Sigemptyset(&empty_mask);
+      Signal(SIGINT, ctlC); // Set up the ctl-c handler
+      Signal(SIGCHLD, chld_done); 
+
+      Sigaddset(&sigs, SIGINT);
+      Sigprocmask(SIG_BLOCK, &sigs, NULL);
+      
+      pids = malloc(group->num_commands * sizeof(int));
+      pidsLength = group->num_commands;
       for(i = 0; i < group->num_commands; i++){
 	int pid = fork();
 	setpgid(pid, 0);
@@ -274,6 +307,8 @@ static void run_group(script_group *group) {
 	  run_command(&group->commands[i]);
 	}
       }
+
+      Sigsuspend(&empty_mask);
       
       // For an or, we'll just want to do a single wait, and then kill all the remaining children
       int status; 
