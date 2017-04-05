@@ -15,11 +15,11 @@ static void set_var(script_var *var, int new_value);
 static void set_var2(script_var *var, int fd);
 
 int ctlC_Pending;
-int* pids;
-int pidsLength;
+volatile int* pids;
+volatile int pidsLength;
 // Called on when ctl-c is received from the shell
 void ctlC(int sigchld){
-  //printf("Got ctl-c");
+  //printf("Got ctl-c\n");
   int i;
   for(i = 0; i < pidsLength; i++)
     kill(pids[i], SIGTERM);
