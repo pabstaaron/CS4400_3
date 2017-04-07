@@ -13,7 +13,7 @@ mdriver: $(OBJS)
 	$(CC) $(CFLAGS) -o mdriver $(OBJS) -lm
 
 mydriver: $(MOBJS)
-	$(CC) -o mydriver $(MOBJS) 
+	$(CC) -o mydriver $(MOBJS) -g
 
 mdriver.o: mdriver.c fsecs.h fcyc.h clock.h memlib.h config.h mm.h
 mydriver.o: myDriver.c 

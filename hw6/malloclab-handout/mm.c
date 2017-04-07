@@ -31,7 +31,7 @@
 int current_avail_size;
 int numHdrs;
 
-void grow();
+void grow(int size);
 
 typedef struct{
   unsigned int length; // The length of the memory chunk, 4 bytes
@@ -48,22 +48,34 @@ Header* top; // The first header in the structure
 int mm_init(void)
 {
   /* current_avail = NULL; */
-  printf("Stepping into mm_init\n");
+  //printf("Stepping into mm_init\n");
+
+  int l = PAGE_ALIGN(1);
   
-  current_avail_size = mem_pagesize()-16; // There is 1 block page to start with
+  current_avail_size = l-32; // There is 1 block page to start with
   numHdrs = 1;
 
-  top = mem_map(mem_pagesize());
-  top->length = mem_pagesize()-16; // In bytes
-  top->alloc = 0;
+  top = (Header*)mem_map(l);
+  top->length = l-16; // In bytes
+  top->alloc = 0;  
   top->nxtHdr = NULL;
-  //top->lstHdr = NULL;
+  //top->lstHdr = NULL; 
 
+  //printf("Init top\n");
+  
+  /* Header* bottom = ((void*)top + top->length); */
+  /* printf("Head/tail delta: %d\n", (void*)bottom-(void*)top); */
+  /* bottom->alloc = 0; */
+  /* bottom->length = 0; */
+  /* bottom->nxtHdr = 0; */
+
+  //top->nxtHdr = bottom;
+  
   int lengthTest = top->length;
   
-  printf("Sizeof: %d\n", current_avail_size);
+  //printf("Sizeof: %d\n", current_avail_size);
   
-  printf("Finished mm_init\n");
+  //printf("Finished mm_init\n");
   return 0; 
 }
 
@@ -73,122 +85,125 @@ int mm_init(void)
  */
 void *mm_malloc(size_t size)
 {
-  printf("Stepping into mm_malloc\n");
+  //printf("Stepping into mm_malloc\n");
   int newsize = ALIGN(size);
-  printf("Requested block size: %d\n", newsize);
-  
-  /* if (current_avail_size < newsize) { */
-  /*   current_avail_size = PAGE_ALIGN(newsize); */
-  /*   current_avail = mem_map(current_avail_size); */
-  /*   if (current_avail == NULL) */
-  /*     return NULL; */
-  /* } */
+  //printf("Requested block size: %d\n", newsize);
 
-  /* p = current_avail; */
-  /* current_avail += newsize; */
-  /* current_avail_size -= newsize; */
-
-  while(current_avail_size <= newsize - 16)
-    grow();
+  if(newsize > current_avail_size - 16)
+    grow(newsize);
   //printf("Made it past grow\n");
   
   // Traverse the list
   Header* currHdr = top;
   int i;
   for(i = 0; i < numHdrs; i++){ // Loop through the headers until we find a block that the data can fit into
-    printf("Length of current header: %d. \tAlloc: %d.\n", currHdr->length, currHdr->alloc);
+    //printf("Length of current header: %d. \tAlloc: %d.\n", currHdr->length, currHdr->alloc);
     if(currHdr->length >= newsize && currHdr->alloc == 0){ // If we've found a block that is large enough and hasn't been allocated yet
-      printf("Found a header that fits!\n");
+      //printf("Found a header that fits!\n");
       
       int old_currHdrLength = currHdr->length;
-      printf("Length of block: %d\n", old_currHdrLength);
       
-      
-      printf("size of newsize: %d\n", sizeof(newsize));
       currHdr->length = newsize; // seg fault here!
-      printf("Finished adjusting currHdr\n");
+      //printf("Finished adjusting currHdr\n");
 
       currHdr->alloc = 1;
-      printf("Altered alloc\n");
+      //printf("Altered alloc\n");
       
       // Install a new header, if necessary
-      if(newsize <= old_currHdrLength - 16){ // If there's space for a new header
+      if(newsize <= old_currHdrLength - 16){ // If there's space for a new header. Make sure to account for the header
 	// Set up the new header
-	Header* newHdr = ((void*)currHdr) + newsize;
-	printf("Generated pointer to new header\n");
+	//printf("CurrHdr Val: %p\n", currHdr);
+	Header* newHdr = ((void*)currHdr + newsize + 16);
+	//printf("Pntr delta: %d\n", (void*)newHdr-(void*)currHdr);
+	
+	//printf("Generated pointer to new header\n");
 	newHdr->length = old_currHdrLength - newsize - 16;
-	printf("Next blk size: %d\n", newHdr->length);
+	//printf("Next blk size: %d\n", newHdr->length);
 	
 	// Patch in the new header
 	if(currHdr->nxtHdr == NULL){
-	  currHdr->nxtHdr = newHdr;
+	  currHdr->nxtHdr = (void*)newHdr;
 	} 
 	else{
-	  void* oldNxt = currHdr->nxtHdr;
-	  currHdr->nxtHdr = newHdr;
-	  newHdr->nxtHdr = oldNxt;
+	  void* oldNxt = (void*)currHdr->nxtHdr;
+	  currHdr->nxtHdr = (void*)newHdr;
+	  newHdr->nxtHdr = oldNxt; 
 	  //((struct Header*)oldNxt)->lstHdr = newHdr;
 	}
 
 	//newHdr->lstHdr = currHdr;
-	newHdr->alloc = 0;
+	newHdr->alloc = 0;  
 	numHdrs++;
+
+	//printf("New header Installed!\nLength %d\tAlloc: %d\n", newHdr->length, newHdr->alloc);
+	current_avail_size -= 16;
       }
 
       //printf("Returning!\n");
-      current_avail_size -= newsize + 16;
-      printf("Current avail size: %d\n", current_avail_size);
-      return currHdr + 16;
+      current_avail_size -= newsize;
+      //printf("Current avail size: %d\n", current_avail_size);
+      return ((void*)currHdr) + 16;
     }
     else{
-      printf("Found a block that won't fit, moving on...\n");
-      currHdr = currHdr->nxtHdr; // Jump to the next block
+      //printf("Found a block that won't fit, moving on...\n");
+      //Header* old = currHdr;
+      currHdr = (Header*)currHdr->nxtHdr; // Jump to the next block
+      //printf("currHdr->currHdr delta: %d\n", (void*)currHdr - (void*)old);
     }
   }
 
-  printf("Returning NULL\n");
+  
+  //printf("Returning NULL\n");
   return NULL;
 }
 
-/*
+/* 
  * mm_free - Freeing a block does nothing.
  */
 void mm_free(void *ptr)
 {
+  Header* toFree = (Header*)ptr; 
+  toFree->alloc = 0;
 }
  
 // Grows the sturcture by a page
-void grow(){
-  printf("Grow called!\n");
+void grow(int size){
+  // Might want to be a bit more sophisticated here.
+  // Only pop up a pagesize if the requested size is going to be a tight squeeze.
+  int growSize = PAGE_ALIGN(size+16);
+  
   if(top->alloc == 0){ // We need to insert more space after top
-    printf("In unalloc grow\n");
+    //printf("In unalloc grow\n");
     
-    Header* newTop = mem_map(mem_pagesize());
-    printf("Succesfully grabbed more memory!\n");
+    Header* newTop = mem_map(growSize);
+    //printf("Succesfully grabbed more memory!\n");
     
     newTop->nxtHdr = top->nxtHdr;
-    printf("Set up newTop->nxtHdr\n");
+    //printf("Set up newTop->nxtHdr\n");
     //((struct Header*)top->nxtHdr)->lstHdr = newTop;
-    newTop->length = top->length + mem_pagesize();
-    printf("Set up length\n");
-    current_avail_size += mem_pagesize();
-    printf("Set up curr size\n");
+    newTop->length = top->length + growSize;
+    //printf("Set up length\n");
+    current_avail_size = growSize - 16;
+    //printf("Set up curr size\n");
     top = newTop;
-    printf("Installed new Top\n");
+    //printf("Installed new Top\n");
     top->alloc = 0;
   }
   else{
-    Header* newTop = mem_map(mem_pagesize());
+    //printf("In alloced grow\n");
+    Header* newTop = mem_map(growSize);
     newTop->alloc = 0;
-    newTop->length = mem_pagesize() - 16;
+    newTop->length = growSize - 16;
 
     newTop->nxtHdr = top;
     //top->lstHdr = newTop;
 
     top = newTop;
 
-    current_avail_size = mem_pagesize()-16;
+    current_avail_size = growSize - 16;
+    //printf("%d\n", current_avail_size);
     numHdrs++;
+    //printf("Finished alloc\n");
   }
 }
 
