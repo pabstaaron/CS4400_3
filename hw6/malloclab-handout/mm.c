@@ -26,6 +26,9 @@
 /* rounds up to the nearest multiple of mem_pagesize() */
 #define PAGE_ALIGN(size) (((size) + (mem_pagesize()-1)) & ~(mem_pagesize()-1))
 
+// Factors the necessary header space out of size values
+#define WITH_HEADER(size) (size-16)
+
 /* void *current_avail = NULL; */
 
 int current_avail_size;
@@ -42,40 +45,31 @@ typedef struct{
 
 Header* top; // The first header in the structure
 
+// Pack the alloc bit into 
+#define PACK(length, alloc) (length | alloc)
+
+// Extract the allocation bit
+#define UNPACK_ALLOC(length) (length & 0x0001)
+
+// Unpack the length field
+#define UNPACK_LENGTH(length) (length & 0xfff0)
+
+
 /* 
  * mm_init - initialize the malloc package.
  */
 int mm_init(void)
 {
-  /* current_avail = NULL; */
-  //printf("Stepping into mm_init\n");
 
   int l = PAGE_ALIGN(1);
   
-  current_avail_size = l-32; // There is 1 block page to start with
+  current_avail_size = WITH_HEADER(l); // There is 1 block page to start with
   numHdrs = 1;
 
   top = (Header*)mem_map(l);
-  top->length = l-16; // In bytes
-  top->alloc = 0;  
+  top->length = PACK(WITH_HEADER(l), 0);  
   top->nxtHdr = NULL;
-  //top->lstHdr = NULL; 
 
-  //printf("Init top\n");
-  
-  /* Header* bottom = ((void*)top + top->length); */
-  /* printf("Head/tail delta: %d\n", (void*)bottom-(void*)top); */
-  /* bottom->alloc = 0; */
-  /* bottom->length = 0; */
-  /* bottom->nxtHdr = 0; */
-
-  //top->nxtHdr = bottom;
-  
-  int lengthTest = top->length;
-  
-  //printf("Sizeof: %d\n", current_avail_size);
-  
-  //printf("Finished mm_init\n");
   return 0; 
 }
 
@@ -85,40 +79,30 @@ int mm_init(void)
  */
 void *mm_malloc(size_t size)
 {
-  //printf("Stepping into mm_malloc\n");
-  int newsize = ALIGN(size);
-  //printf("Requested block size: %d\n", newsize);
+  int newsize = ALIGN(size); // Ensure that the requested size is on a 16 byte alignment
 
-  if(newsize > current_avail_size - 16)
+  if(newsize > WITH_HEADER(current_avail_size))
     grow(newsize);
-  //printf("Made it past grow\n");
   
   // Traverse the list
   Header* currHdr = top;
   int i;
   for(i = 0; i < numHdrs; i++){ // Loop through the headers until we find a block that the data can fit into
-    //printf("Length of current header: %d. \tAlloc: %d.\n", currHdr->length, currHdr->alloc);
-    if(currHdr->length >= newsize && currHdr->alloc == 0){ // If we've found a block that is large enough and hasn't been allocated yet
-      //printf("Found a header that fits!\n");
+    printf("Length: %d\tAlloc: %d\n", UNPACK_LENGTH(currHdr->length), UNPACK_ALLOC(currHdr->alloc));
+    if(UNPACK_LENGTH(currHdr->length) >= newsize && UNPACK_ALLOC(currHdr->length) == 0){ // If we've found a block that is large enough and hasn'
       
       int old_currHdrLength = currHdr->length;
       
-      currHdr->length = newsize; // seg fault here!
-      //printf("Finished adjusting currHdr\n");
-
-      currHdr->alloc = 1;
-      //printf("Altered alloc\n");
+      currHdr->length = PACK(newsize, 1);
+      printf("newsize: %d\tcurrHdrLength: %d\n", newsize, currHdr->length);
       
       // Install a new header, if necessary
-      if(newsize <= old_currHdrLength - 16){ // If there's space for a new header. Make sure to account for the header
-	// Set up the new header
-	//printf("CurrHdr Val: %p\n", currHdr);
-	Header* newHdr = ((void*)currHdr + newsize + 16);
-	//printf("Pntr delta: %d\n", (void*)newHdr-(void*)currHdr);
+      if(newsize <= WITH_HEADER(old_currHdrLength)){ // If there's space for a new header.
 	
-	//printf("Generated pointer to new header\n");
-	newHdr->length = old_currHdrLength - newsize - 16;
-	//printf("Next blk size: %d\n", newHdr->length);
+	// Set up the new header
+	Header* newHdr = ((void*)currHdr + newsize + 16);
+	newHdr->length = PACK((old_currHdrLength - WITH_HEADER(newsize)), 0);
+	printf("newHdr Length: %d\n", newHdr->length);
 	
 	// Patch in the new header
 	if(currHdr->nxtHdr == NULL){
@@ -128,27 +112,18 @@ void *mm_malloc(size_t size)
 	  void* oldNxt = (void*)currHdr->nxtHdr;
 	  currHdr->nxtHdr = (void*)newHdr;
 	  newHdr->nxtHdr = oldNxt; 
-	  //((struct Header*)oldNxt)->lstHdr = newHdr;
 	}
 
-	//newHdr->lstHdr = currHdr;
-	newHdr->alloc = 0;  
 	numHdrs++;
 
-	//printf("New header Installed!\nLength %d\tAlloc: %d\n", newHdr->length, newHdr->alloc);
-	current_avail_size -= 16;
+	current_avail_size = WITH_HEADER(current_avail_size);
       }
 
-      //printf("Returning!\n");
       current_avail_size -= newsize;
-      //printf("Current avail size: %d\n", current_avail_size);
       return ((void*)currHdr) + 16;
     }
     else{
-      //printf("Found a block that won't fit, moving on...\n");
-      //Header* old = currHdr;
       currHdr = (Header*)currHdr->nxtHdr; // Jump to the next block
-      //printf("currHdr->currHdr delta: %d\n", (void*)currHdr - (void*)old);
     }
   }
 
@@ -163,7 +138,7 @@ void *mm_malloc(size_t size)
 void mm_free(void *ptr)
 {
   Header* toFree = (Header*)ptr; 
-  toFree->alloc = 0;
+  toFree->length = PACK(UNPACK_LENGTH(toFree->length), 0);
 }
  
 // Grows the sturcture by a page
@@ -179,31 +154,21 @@ void grow(int size){
     //printf("Succesfully grabbed more memory!\n");
     
     newTop->nxtHdr = top->nxtHdr;
-    //printf("Set up newTop->nxtHdr\n");
-    //((struct Header*)top->nxtHdr)->lstHdr = newTop;
-    newTop->length = top->length + growSize;
-    //printf("Set up length\n");
-    current_avail_size = growSize - 16;
-    //printf("Set up curr size\n");
+    newTop->length = PACK((top->length + growSize), 0);
+    current_avail_size = WITH_HEADER(growSize);
     top = newTop;
-    //printf("Installed new Top\n");
-    top->alloc = 0;
   }
   else{
     //printf("In alloced grow\n");
     Header* newTop = mem_map(growSize);
-    newTop->alloc = 0;
-    newTop->length = growSize - 16;
+    newTop->length = PACK(WITH_HEADER(growSize), 0);
 
     newTop->nxtHdr = top;
-    //top->lstHdr = newTop;
 
     top = newTop;
 
-    current_avail_size = growSize - 16;
-    //printf("%d\n", current_avail_size);
+    current_avail_size = WITH_HEADER(growSize);
     numHdrs++;
-    //printf("Finished alloc\n");
   }
 }
 
