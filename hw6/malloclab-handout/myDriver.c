@@ -10,11 +10,11 @@ int main(int argc, char **argv){
   mm_init();
 
   
-  for(int j = 0; j < 1; j++){
+  for(int j = 0; j < 1002; j++){
     int numInts = 1000;
   
     int* m = mm_malloc(numInts * sizeof(int)); // Grab an array of 4 ints
-    //printf("Malloc call complete\n");
+    printf("Malloc call complete\n\n");
   
     for(int i = 0; i < numInts; i++){
       //printf("%d\n", i+1);
@@ -26,7 +26,7 @@ int main(int argc, char **argv){
     /* } */
     //printf("\n");
 
-    //mm_free(m);
+    mm_free(m);
   }
   
   return 0;
