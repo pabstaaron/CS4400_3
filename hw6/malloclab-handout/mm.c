@@ -20,6 +20,8 @@
 /* always use 16-byte alignment */
 #define ALIGNMENT 16
 
+#define HDR_SIZE 32
+
 /* rounds up to the nearest multiple of ALIGNMENT */
 #define ALIGN(size) (((size) + (ALIGNMENT-1)) & ~(ALIGNMENT-1))
 
@@ -27,7 +29,7 @@
 #define PAGE_ALIGN(size) (((size) + (mem_pagesize()-1)) & ~(mem_pagesize()-1))
 
 // Factors the necessary header space out of size values
-#define WITH_HEADER(size) (size-16)
+#define WITH_HEADER(size) (size-HDR_SIZE)
 
 /* void *current_avail = NULL; */
 
@@ -43,7 +45,8 @@ typedef struct{
   unsigned int length; // The length of the memory chunk, 4 bytes
   short callId; // Used to keep track of which call to mem_map this header belongs to
   void* nxtHdr; // 4
-  //void* lstHdr; // 4
+  void* lstHdr; // 4
+  long filler;
 }Header;
 
 Header* top; // The first header in the structure
@@ -57,7 +60,7 @@ void coalesce(Header* freed);
 #define UNPACK_ALLOC(length) (length & 0x0001)
 
 // Unpack the length field
-#define UNPACK_LENGTH(length) (length & 0xfff0)
+#define UNPACK_LENGTH(length) (length & 0xfffffffffffffff0)
 
 
 /* 
@@ -72,6 +75,8 @@ int mm_init(void)
   numHdrs = 1;
 
   currCallId = 1;
+
+  //printf("Sizeof: %d", sizeof(Header));
   
   top = (Header*)mem_map(l);
   top->length = PACK(WITH_HEADER(l), 0);  
@@ -87,6 +92,9 @@ int mm_init(void)
  */
 void *mm_malloc(size_t size)
 {
+  if(size <= 0)
+    return NULL;
+  
   int newsize = ALIGN(size); // Ensure that the requested size is on a 16 byte alignment
 
   if(newsize > current_avail_size)
@@ -138,10 +146,10 @@ void *mm_malloc(size_t size)
 
   int delta = -1;
 
-  //printf("Starting region search. Requested size: %d\n", newsize);
+  printf("Starting region search. Requested size: %d\n", newsize);
   int i;
   for(i = 0; i < numHdrs; i++){
-    //printf("%d:\tLength: %d\tAlloc: %d\n", i, UNPACK_LENGTH(curr->length), UNPACK_ALLOC(curr->length));
+    printf("%d:\tLength: %d\tAlloc: %d\n", i, UNPACK_LENGTH(curr->length), UNPACK_ALLOC(curr->length));
     if(UNPACK_LENGTH(curr->length) >= newsize && UNPACK_ALLOC(curr->length) == 0){ // If the allocation will fit in this region
       if(delta == -1){ // This is the first region found that will work
 	delta = UNPACK_LENGTH(curr->length) - newsize;
@@ -156,8 +164,10 @@ void *mm_malloc(size_t size)
 	break; // No sense in continuing if we've found a best-case scenario
     }
     
-    if(curr->nxtHdr != NULL)
+    if(curr->nxtHdr != NULL){
       curr = (Header*)curr->nxtHdr;
+      //printf("Jumping to a new Heade\n");
+    }
   } 
   //printf("Finished region search\n");
   
@@ -168,8 +178,8 @@ void *mm_malloc(size_t size)
   if(newsize <= WITH_HEADER(old_hdrLength)){ // If there's space for a new header.
     //printf("Installing new header\n");
     // Set up the new header
-    Header* newHdr = ((void*)best + newsize + 16);
-    newHdr->length = PACK((old_hdrLength - WITH_HEADER(newsize) - 32), 0);
+    Header* newHdr = ((void*)best + newsize + HDR_SIZE);
+    newHdr->length = PACK((old_hdrLength - WITH_HEADER(newsize) - 2*HDR_SIZE), 0);
 	 
     // Patch in the new header
     if(best->nxtHdr == NULL){
@@ -194,7 +204,7 @@ void *mm_malloc(size_t size)
   //printf("-Best-\nLength: %d\tAlloc: %d\n", UNPACK_LENGTH(best->length), UNPACK_ALLOC(best->length));
   
   //printf("Returning NULL\n");
-  return (void*)best + ALIGNMENT;
+  return (void*)best + HDR_SIZE;
 }
 
 /* 
@@ -255,7 +265,7 @@ void coalesce(Header* freed){
     
     int oldFreeLength = UNPACK_LENGTH(freed->length);
     int oldNextLength = UNPACK_LENGTH(nxt->length);
-    int newLength = oldFreeLength + oldNextLength + ALIGNMENT;
+    int newLength = oldFreeLength + oldNextLength + HDR_SIZE;
 
     freed->length = PACK(newLength, 0);
 
@@ -265,11 +275,15 @@ void coalesce(Header* freed){
 
 // Grows the sturcture by a page
 void grow(int size){
-  int growSize = PAGE_ALIGN(size+16);
-  
+  //printf("Grow called. Requested Size: %d\n", size);
+  int growSize = PAGE_ALIGN(size+HDR_SIZE);
+
+  //printf("growSize: %d\n", growSize);
   Header* newTop = mem_map(growSize); 
   newTop->length = PACK(WITH_HEADER(growSize), 0);
 
+  //printf("New top length: %d\n", UNPACK_LENGTH(newTop->length));
+  
   newTop->nxtHdr = top;
 
   top = newTop;
@@ -279,5 +293,6 @@ void grow(int size){
     
   current_avail_size = WITH_HEADER(growSize);
   numHdrs++;
+  // printf("Called grow\n");
 }
 
