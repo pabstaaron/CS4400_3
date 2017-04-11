@@ -46,7 +46,8 @@ Elf64_Shdr* getSectionByName(Elf64_Ehdr* ehdr, char* name){
   char* strs = (void*)ehdr+shdrs[ehdr->e_shstrndx].sh_offset;
   // printf("getsecbyname");
   // Loop through all of the section headers
-  for(int i = 0; i < ehdr->e_shnum; i++){
+  int i;
+  for(i = 0; i < ehdr->e_shnum; i++){
   
     if(strcmp(strs + shdrs[i].sh_name, name) == 0){ // If this section is the one we're looking for.
       return &shdrs[i]; // Return the location of the sh_header
@@ -64,7 +65,8 @@ void parseSectionNames(Elf64_Ehdr* ehdr){
   char* strs = (void*)ehdr+shdrs[ehdr->e_shstrndx].sh_offset;
   
   // Loop through all of the section headers
-  for(int i = 0; i < ehdr->e_shnum; i++){
+  int i;
+  for(i = 0; i < ehdr->e_shnum; i++){
     // shdrs[i].sh_name contains the offset into the str table where the section name can be found.
     printf("%s\n", strs + shdrs[i].sh_name);
   }
@@ -165,8 +167,8 @@ void getVars(void* func, Elf64_Ehdr* ehdr){
 	    //printf("%x\t%x\n", *currByte, pcOff);
 	  }
 	  */
-
-	  for(int i = 0; i < 4; i++){
+	  int i;
+	  for(i = 0; i < 4; i++){
 	    currByte++;
 	    unsigned int temp = (int)(*currByte);
 	    temp <<= 24;
@@ -184,7 +186,7 @@ void getVars(void* func, Elf64_Ehdr* ehdr){
 	  //printf("%x\n", pcOff);
 	  
 	  //printf("Offset\n");
-	  for(int i = 0; i < count; i++){
+	  for(i = 0; i < count; i++){
 	    if(reladyn[i].r_offset == pcOff){
 	      //printf("Found it!!\n");
 	    
