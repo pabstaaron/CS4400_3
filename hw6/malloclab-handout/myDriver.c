@@ -9,9 +9,9 @@ int main(int argc, char **argv){
 
   mm_init();
 
-  
-  for(int j = 0; j < 1; j++){
-    int numInts = 7056;
+  int upper = 1000;
+  for(int j = 0; j < upper; j++){
+    int numInts = upper-j;
   
     int* m = mm_malloc(numInts * sizeof(int)); // Grab an array of 4 ints
     printf("Malloc call complete: %d\n\n", j);
@@ -22,11 +22,14 @@ int main(int argc, char **argv){
     }
   
     /* for(int i = 0; i < numInts; i++){ */
-    /*   printf("%d, ", m[i]); */
+    /*   printf("%d, ", m[i]); */ 
     /* } */
     //printf("\n");
 
-    mm_free(m);
+    /* if(j % 2 == 0){ */
+    /*   mm_free(m); */
+    /*   printf("Free call complete\n"); */
+    /* } */
   }
   
   return 0;

@@ -1,0 +1,7 @@
+-Heap State-
+Maximum Avail Size: 4080	Num Hdrs: 5
+9 - Curr: 0x7fe0458e7000		Length: 4080		Alloc: 0		CallId: 4		IsLast: 0		 Last Header: (nil)		Nxt: 0x7fe0458ec000
+2 - Curr: 0x7fe0458ec000		Length: 4064		Alloc: 0		CallId: 1		IsLast: 0		 Last Header: 0x7fe0458e7000		Nxt: 0x7fe0458ef000
+0 - Curr: 0x7fe0458ef000		Length: 2048		Alloc: 0		CallId: 0		IsLast: 0		 Last Header: 0x7fe0458ec000		Nxt: 0x7fe0458ef820
+1 - Curr: 0x7fe0458ef820		Length: 1984		Alloc: 0		CallId: 0		IsLast: 1		 Last Header: 0x7fe0458ef000
+1 - Curr: 0x7fe0458ef820		Length: 1984		Alloc: 0		CallId: 0		IsLast: 1		 Last Header: 0x7fe0458ef000		
