@@ -257,6 +257,7 @@ void serve_form(int fd, dictionary_t* query)
 
 // Adds a message to the conversation specified in topic
 // Creates a new entry for topic if it does not exist
+// TODO: Need to copy content into a different memory location that won't be freed by doit
 void appendToConvo(char* topic, char* user, char* content){
   if(content == NULL || !strcmp(content, "")){
     printf("Returning early\n");
@@ -288,17 +289,17 @@ void appendToConvo(char* topic, char* user, char* content){
   
   newMsgs[wrap->len] = *newMsg;
 
-  int oldLength = wrap->len;
+  //int oldLength = wrap->len;
   wrap->len = wrap->len + 1;
   wrap->msgs = (void*)newMsgs;
-  printf("Added new message! User: %s \tContent: %s\n", newMsgs[oldLength].user, newMsg[oldLength].content);
+  // printf("Print me! %d\n", oldLength);
+  //printf("Added new message! User: %s \tContent: %s\n", newMsgs[oldLength].user, newMsg[oldLength].content);
 }
 
-// Reads the conversation of the specified topic into an array of messages of length len
-// Returns NULL if the conversation does not exist
+// Reads the conversation of the specified topic into an array of messages of length len// Returns NULL if the conversation does not exist
 char* readConvo(char* topic){
   printf("Reading convo\n");
-  msg_wrapper* wrap = (msg_wrapper*)dictionary_get(convos, topic);
+  msg_wrapper* wrap = (msg_wrapper*)dictionary_get(convos, topic); 
   if(wrap == NULL)
     return ""; 
 
