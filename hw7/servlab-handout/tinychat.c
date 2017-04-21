@@ -22,7 +22,11 @@ void clienterror(int fd, char *cause, char *errnum,
 static void print_stringdictionary(dictionary_t *d);
 void serve_login(int fd, dictionary_t* query);
 void appendToConvo(char* topic, char* user, char* content);
-  
+void serve_convo(fd, query);
+void grab_content(fd, query);
+void serve_import(fd, query);
+char* readConvo_noHtml(char* topic)
+
 dictionary_t* convos; // Each value of convos will be a msg_wrap
 
 typedef struct{
@@ -62,14 +66,14 @@ int main(int argc, char **argv)
   /* Also, don't stop on broken connections: */
   Signal(SIGPIPE, SIG_IGN);
 
-  appendToConvo("Kylie's hot", "aaron", "Seriously though");
-  printf("%s\n", readConvo("Kylie's hot"));
-  appendToConvo("Kylie's hot", "aaron", "I like her a lot");
-  printf("%s\n", readConvo("Kylie's hot"));
-  appendToConvo("Kylie's hot", "aaron", "I like her a lot");
-  printf("%s\n", readConvo("Kylie's hot"));
-  appendToConvo("Kylie's hot", "aaron", "I like her a lot");
-  printf("%s\n", readConvo("Kylie's hot"));
+  /* appendToConvo("Kylie's hot", "aaron", "Seriously though"); */
+  /* printf("%s\n", readConvo("Kylie's hot")); */
+  /* appendToConvo("Kylie's hot", "aaron", "I like her a lot"); */
+  /* printf("%s\n", readConvo("Kylie's hot")); */
+  /* appendToConvo("Kylie's hot", "aaron", "I like her a lot"); */
+  /* printf("%s\n", readConvo("Kylie's hot")); */
+  /* appendToConvo("Kylie's hot", "aaron", "I like her a lot"); */
+  /* printf("%s\n", readConvo("Kylie's hot")); */
   
   while (1) {
     clientlen = sizeof(clientaddr);
@@ -122,12 +126,25 @@ void doit(int fd)
 	char* content = dictionary_get(query, "content");
 	printf("content is %s\n", content);
         read_postquery(&rio, headers, query);
-     
       }
       /* For debugging, print the dictionary */
       print_stringdictionary(query);
 
-      if(starts_with("/reply", uri))
+      
+      // Will need to add some additional logic here to service
+      if(starts_with("/conversation", uri)){
+	// Send the conversation specified in the url as plain
+	serve_convo(fd, query);
+      }
+      else if(starts_with("/say", uri)){
+	// Add the content specified in the query into the topic specified
+	grab_content(fd, query);
+      }
+      else if(starts_with("/import", uri)){
+	// Imports a conversation from another chat server
+	serve_import(fd, query);
+      }
+      else if(starts_with("/reply", uri))
 	serve_form(fd, query);
       else
 	serve_login(fd, query);
@@ -143,7 +160,7 @@ void doit(int fd)
     free(version);
   }
 }
-
+ 
 /*
  * read_requesthdrs - read HTTP request headers
  */
@@ -193,9 +210,21 @@ static char *ok_header(size_t len, const char *content_type) {
                           "Content-length: ", len_str = to_string(len), "\r\n",
                           "Content-type: ", content_type, "\r\n\r\n",
                           NULL);
-  //free(len_str);
+  free(len_str);
 
   return header;
+}
+
+/*
+ * Sends the content of the of the conversation specified
+ * in the query's topic field as plain text to the client
+ */
+void serve_convo(fd, query){
+  // Step 1: Get conversation data
+  char* topic = dictionary_get(query, "topic");
+  char* convoText = readConvo_noHtml(topic);
+
+  // Step 2: Send that data back to the client
 }
 
 /*
@@ -215,6 +244,8 @@ void serve_form(int fd, dictionary_t* query)
     topic = "Kylie's Hot";
 
   // Need to get all conversation mesages here
+   // Add message to the dictionary
+  appendToConvo(topic, user, content);
   char* convoText = readConvo(topic);
   printf("%s\n", convoText);
   
@@ -222,7 +253,7 @@ void serve_form(int fd, dictionary_t* query)
                         "<p>Welcome to TinyChat, ",
 			user,
 			"</p>",
-			"<p>",
+			"<p>Topic: ",
 			topic,
 			"</p>",
 			convoText,
@@ -235,7 +266,7 @@ void serve_form(int fd, dictionary_t* query)
 			"<input type=\"hidden\" name=\"topic\" value=\"", topic, "\">\r\n",
                         "</form></body></html>\r\n",
                         NULL);
- 
+  
   len = strlen(body);
 
   /* Send response headers to client */
@@ -245,16 +276,15 @@ void serve_form(int fd, dictionary_t* query)
   printf("%s", header);
 
   /* printf("Before\n"); */
-  /* free(header); // Seg fault here */
+  free(header); // Seg fault here
   /* printf("After\n"); */
 
   /* Send response body to client */
   Rio_writen(fd, body, len);
 
-  // Add message to the dictionary
-  appendToConvo(topic, user, content);
+ 
   
-  //free(body);
+  free(body);
 }
 
 // Adds a message to the conversation specified in topic
@@ -300,6 +330,9 @@ void appendToConvo(char* topic, char* user, char* content){
   wrap->msgs = (void*)newMsgs;
   // printf("Print me! %d\n", oldLength);
   //printf("Added new message! User: %s \tContent: %s\n", newMsgs[oldLength].user, newMsg[oldLength].content);
+  printf("Bailing out of append\n");
+
+  free(oldMsgs);
 }
 
 // Reads the conversation of the specified topic into an array of messages of length len// Returns NULL if the conversation does not exist
@@ -325,11 +358,40 @@ char* readConvo(char* topic){
   char* html = calloc(len, sizeof(char));
   for(i = 0; i < wrap->len; i++){
     msg curr = ((msg*)(wrap->msgs))[i];
-    html = strcat(html, "<p>\n");
+    html = strcat(html, "<p>");
     html = strcat(html, curr.user);
     html = strcat(html, ": ");
     html = strcat(html, curr.content);
-    html = strcat(html, "\n</p>\n");
+    html = strcat(html, "</p>");
+  }
+
+  return html;
+}
+
+char* readConvo_noHtml(char* topic){
+printf("Reading convo\n");
+  msg_wrapper* wrap = (msg_wrapper*)dictionary_get(convos, topic); 
+  if(wrap == NULL)
+    return ""; 
+
+  // Figure out how long the string will need to be.
+  int len = 0;
+  int i;
+  for(i = 0; i < wrap->len; i++){
+    msg curr = ((msg*)(wrap->msgs))[i];
+    len += strlen(curr.user);
+    len += strlen(curr.content);
+    len += 3; 
+  }
+
+  // Build in the new html
+  char* html = calloc(len, sizeof(char));
+  for(i = 0; i < wrap->len; i++){
+    msg curr = ((msg*)(wrap->msgs))[i];
+    html = strcat(html, curr.user);
+    html = strcat(html, ": ");
+    html = strcat(html, curr.content);
+    html = strcat(html, "\n"); // Carriage return
   }
 
   return html;
