@@ -193,7 +193,7 @@ static char *ok_header(size_t len, const char *content_type) {
                           "Content-length: ", len_str = to_string(len), "\r\n",
                           "Content-type: ", content_type, "\r\n\r\n",
                           NULL);
-  free(len_str);
+  //free(len_str);
 
   return header;
 }
@@ -244,7 +244,9 @@ void serve_form(int fd, dictionary_t* query)
   printf("Response headers:\n");
   printf("%s", header);
 
-  free(header);
+  /* printf("Before\n"); */
+  /* free(header); // Seg fault here */
+  /* printf("After\n"); */
 
   /* Send response body to client */
   Rio_writen(fd, body, len);
@@ -252,7 +254,7 @@ void serve_form(int fd, dictionary_t* query)
   // Add message to the dictionary
   appendToConvo(topic, user, content);
   
-  free(body);
+  //free(body);
 }
 
 // Adds a message to the conversation specified in topic
@@ -263,7 +265,11 @@ void appendToConvo(char* topic, char* user, char* content){
     printf("Returning early\n");
     return;
   }
-  printf("Content in append: %s\n", content);
+  char* contentTwo = malloc(strlen(content));
+  char* userTwo = malloc(strlen(user));
+  strcpy(contentTwo, content);
+  strcpy(userTwo, user);
+  printf("Content in append: %s\n", contentTwo);
   msg_wrapper* wrap = (msg_wrapper*)dictionary_get(convos, topic);
   if(wrap == NULL){
     printf("Creating a new conversation\n");
@@ -284,8 +290,8 @@ void appendToConvo(char* topic, char* user, char* content){
   }
 
   msg* newMsg = (msg*)calloc(1, sizeof(msg));
-  newMsg->user = user;
-  newMsg->content = content;
+  newMsg->user = userTwo;
+  newMsg->content = contentTwo;
   
   newMsgs[wrap->len] = *newMsg;
 
